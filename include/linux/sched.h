@@ -669,6 +669,10 @@ struct user_struct {
 	struct key *session_keyring;	/* UID's default session keyring */
 #endif
 
+#ifdef CONFIG_UNIX
+	atomic_t unix_inflight;		/* Number of sockets inflight via AF_UNIX. */
+#endif
+
 	/* Hash table maintenance information */
 	struct hlist_node uidhash_node;
 	kuid_t uid;

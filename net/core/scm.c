@@ -38,6 +38,7 @@
 #include <net/scm.h>
 #include <net/cls_cgroup.h>
 
+#define UNIX_MAX_INFLIGHT 10000
 
 /*
  *	Only allow a user to send credentials, that they could set with
@@ -97,6 +98,8 @@ static int scm_fp_copy(struct cmsghdr *cmsg, struct scm_fp_list **fplp)
 	 *	Verify the descriptors and increment the usage count.
 	 */
 
+	fpl->user = get_current_user();
+
 	for (i=0; i< num; i++)
 	{
 		int fd = fdp[i];
@@ -104,6 +107,13 @@ static int scm_fp_copy(struct cmsghdr *cmsg, struct scm_fp_list **fplp)
 
 		if (fd < 0 || !(file = fget_raw(fd)))
 			return -EBADF;
+		if (atomic_inc_return(&fpl->user->unix_inflight) >= UNIX_MAX_INFLIGHT &&
+		    !capable(CAP_SYS_ADMIN)) {
+			atomic_dec(&fpl->user->unix_inflight);
+			fput(file);
+			free_uid(fpl->user);
+			return -ENOSPC;
+		}
 		*fpp++ = file;
 		fpl->count++;
 	}
@@ -119,6 +129,8 @@ void __scm_destroy(struct scm_cookie *scm)
 		scm->fp = NULL;
 		for (i=fpl->count-1; i>=0; i--)
 			fput(fpl->fp[i]);
+		atomic_sub(fpl->count, &fpl->user->unix_inflight);
+		free_uid(fpl->user);
 		kfree(fpl);
 	}
 }
@@ -332,6 +344,15 @@ struct scm_fp_list *scm_fp_dup(struct scm_fp_list *fpl)
 	new_fpl = kmemdup(fpl, offsetof(struct scm_fp_list, fp[fpl->count]),
 			  GFP_KERNEL);
 	if (new_fpl) {
+		if (atomic_add_return(fpl->count, &fpl->user->unix_inflight)
+		    >= UNIX_MAX_INFLIGHT && !capable(CAP_SYS_ADMIN)) {
+			atomic_sub(fpl->count, &fpl->user->unix_inflight);
+			kfree(new_fpl);
+			return NULL;
+		}
+
+		get_uid(new_fpl->user);
+
 		for (i = 0; i < fpl->count; i++)
 			get_file(fpl->fp[i]);
 		new_fpl->max = new_fpl->count;
