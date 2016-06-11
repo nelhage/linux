@@ -804,7 +804,7 @@ static const struct memdev {
 	 [8] = { "bsd_urandom", 0666, &bsd_urandom_fops, 0 },
 	 [9] = { "bsd_urandom", 0666, &bsd_urandom_fops, 0 },
 #endif
-	 [10] = { "bsd_urandom", 0666, &bsd_urandom_fops, 0 },
+	 [13] = { "bsd_urandom", 0666, &bsd_urandom_fops, 0 },
 #ifdef CONFIG_PRINTK
 	[11] = { "kmsg", 0644, &kmsg_fops, 0 },
 #endif
