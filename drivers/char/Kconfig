@@ -6,6 +6,15 @@ menu "Character devices"
 
 source "drivers/tty/Kconfig"
 
+config BSD_RANDOM
+	bool "random and urandom behave like they do on BSDs"
+	default n
+	help
+	  When "y", the character devices for /dev/random and /dev/urandom behave
+	  as they do on BSDs. This means that /dev/urandom will block if it hasn't
+	  been initialized yet, and /dev/random will behave identically to
+	  /dev/urandom. When "n" (the default), the legacy kernel behavior is used.
+
 config DEVMEM
 	bool "/dev/mem virtual device support"
 	default y
