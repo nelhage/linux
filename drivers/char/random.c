@@ -1473,6 +1473,21 @@ urandom_read(struct file *file, char __user *buf, size_t nbytes, loff_t *ppos)
 	return ret;
 }
 
+static ssize_t
+bsd_urandom_read(struct file *file, char __user *buf, size_t nbytes, loff_t *ppos)
+{
+	if (unlikely(nonblocking_pool.initialized == 0)) {
+		if (file->f_flags & O_NONBLOCK) {
+			return -EAGAIN;
+		}
+		wait_event_interruptible(urandom_init_wait, nonblocking_pool.initialized);
+		if (signal_pending(current)) {
+			return -ERESTARTSYS;
+		}
+	}
+	return urandom_read(file, buf, nbytes, ppos);
+}
+
 static unsigned int
 random_poll(struct file *file, poll_table * wait)
 {
@@ -1485,6 +1500,18 @@ random_poll(struct file *file, poll_table * wait)
 		mask |= POLLIN | POLLRDNORM;
 	if (ENTROPY_BITS(&input_pool) < random_write_wakeup_bits)
 		mask |= POLLOUT | POLLWRNORM;
+	return mask;
+}
+
+static unsigned int
+bsd_urandom_poll(struct file *file, poll_table *wait) {
+	unsigned int mask = 0;
+
+	poll_wait(file, &urandom_init_wait, wait);
+	mask |= POLLIN | POLLRDNORM
+	if (ENTROPY_BITS(&input_pool) < random_write_wakeup_bits) {
+		mask |= POLLOUT | POLLWRNORM;
+	}
 	return mask;
 }
 
@@ -1598,6 +1625,15 @@ const struct file_operations urandom_fops = {
 	.fasync = random_fasync,
 	.llseek = noop_llseek,
 };
+
+const struct file_operations bsd_urandom_fops = {
+	.read = bsd_urandom_read,
+	.write = random_write,
+	.unblocked_ioctl = random_ioctl,
+	.poll = bsd_urandom_poll,
+	.fasync = random_fasync,
+	.llseek = noop_llseek,
+}
 
 SYSCALL_DEFINE3(getrandom, char __user *, buf, size_t, count,
 		unsigned int, flags)

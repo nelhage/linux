@@ -29,7 +29,7 @@ extern void get_random_bytes_arch(void *buf, int nbytes);
 extern int random_int_secret_init(void);
 
 #ifndef MODULE
-extern const struct file_operations random_fops, urandom_fops;
+extern const struct file_operations random_fops, urandom_fops, bsd_urandom_fops;
 #endif
 
 unsigned int get_random_int(void);
