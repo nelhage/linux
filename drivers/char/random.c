@@ -1508,7 +1508,7 @@ bsd_urandom_poll(struct file *file, poll_table *wait) {
 	unsigned int mask = 0;
 
 	poll_wait(file, &urandom_init_wait, wait);
-	mask |= POLLIN | POLLRDNORM
+	mask |= POLLIN | POLLRDNORM;
 	if (ENTROPY_BITS(&input_pool) < random_write_wakeup_bits) {
 		mask |= POLLOUT | POLLWRNORM;
 	}
