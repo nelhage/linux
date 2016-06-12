@@ -801,8 +801,8 @@ static const struct memdev {
 	 [8] = { "random", 0666, &random_fops, 0 },
 	 [9] = { "urandom", 0666, &urandom_fops, 0 },
 #else
-	 [8] = { "bsd_urandom", 0666, &bsd_urandom_fops, 0 },
-	 [9] = { "bsd_urandom", 0666, &bsd_urandom_fops, 0 },
+	 [8] = { "random", 0666, &bsd_urandom_fops, 0 },
+	 [9] = { "urandom", 0666, &bsd_urandom_fops, 0 },
 #endif
 	 [13] = { "bsd_urandom", 0666, &bsd_urandom_fops, 0 },
 #ifdef CONFIG_PRINTK
