@@ -1480,6 +1480,9 @@ bsd_urandom_read(struct file *file, char __user *buf, size_t nbytes, loff_t *ppo
 		if (file->f_flags & O_NONBLOCK) {
 			return -EAGAIN;
 		}
+		printk_once(KERN_NOTICE, "random: %s bsd urandom read waiting for "
+				"more entropy, currently %d bits available\n",
+				current->comm, nonblocking_pool.entropy_total);
 		wait_event_interruptible(urandom_init_wait, nonblocking_pool.initialized);
 		if (signal_pending(current)) {
 			return -ERESTARTSYS;
