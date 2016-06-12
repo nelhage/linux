@@ -868,6 +868,13 @@ static int __init chr_dev_init(void)
 		if ((minor == DEVPORT_MINOR) && !arch_has_dev_port())
 			continue;
 
+		/* Do not create a /dev/bsd_urandom, it's for people to mknod
+		 * themselves, if they so choose.
+		 */
+		if (minor == 13) {
+			continue;
+		}
+
 		device_create(mem_class, NULL, MKDEV(MEM_MAJOR, minor),
 			      NULL, devlist[minor].name);
 	}
