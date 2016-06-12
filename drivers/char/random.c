@@ -1633,7 +1633,7 @@ const struct file_operations bsd_urandom_fops = {
 	.poll = bsd_urandom_poll,
 	.fasync = random_fasync,
 	.llseek = noop_llseek,
-}
+};
 
 SYSCALL_DEFINE3(getrandom, char __user *, buf, size_t, count,
 		unsigned int, flags)
