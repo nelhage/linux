@@ -1629,8 +1629,8 @@ const struct file_operations urandom_fops = {
 const struct file_operations bsd_urandom_fops = {
 	.read = bsd_urandom_read,
 	.write = random_write,
-	.unlocked_ioctl = random_ioctl,
 	.poll = bsd_urandom_poll,
+	.unlocked_ioctl = random_ioctl,
 	.fasync = random_fasync,
 	.llseek = noop_llseek,
 };
