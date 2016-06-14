@@ -981,7 +981,7 @@ static void xfer_secondary_pool(struct entropy_store *r, size_t nbytes)
 	    r->entropy_count > r->poolinfo->poolfracbits)
 		return;
 
-	if (r->limit == 0 && random_min_urandom_seed) {
+	if (r->limit == 0 && r->initialized && random_min_urandom_seed) {
 		unsigned long now = jiffies;
 
 		if (time_before(now,
